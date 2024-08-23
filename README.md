@@ -2,9 +2,9 @@
 
 Add quick, simple and beautiful health checks to your Rails application.
 
-Allgood allows you to define custom health checks (like: are there any new users in the past 24 hours, does the last post have all the attributes we expect, etc.) in a very intuitive way that reads just like English – and provides a `/healthcheck` endpoint that displays the results in a beautiful page.
+`allgood` allows you to define custom, business-oriented health checks (like: are there any new users in the past 24 hours, are they posting, does the last post have all the attributes we expect, etc.) in a very intuitive way that reads just like English – and provides a `/healthcheck` endpoint that displays the results in a beautiful page.
 
-You can then use that endpoint to monitor the health of your application via UptimeRobot, Pingdom, etc.
+You can then use that endpoint to monitor the health of your application via UptimeRobot, Pingdom, etc. These services will load your `/healthcheck` page every few minutes, so all checks will be run when UptimeRobot fetches the page.
 
 ![alt text](allgood.jpeg)
 
@@ -37,7 +37,20 @@ The `/healthcheck` page returns a `200` HTTP code if all checks are successful �
 
 Create a file `config/allgood.rb` in your Rails application. This is where you'll define your health checks:
 ```ruby
+# config/allgood.rb
+
 check "We have an active database connection" do
+  make_sure ActiveRecord::Base.connection.active?
+end
+```
+
+As you can see, there's a very simple DSL (Domain-Specific Language) you can use to define health checks. It reads almost like natural English, and allows you to define powerful yet simple checks to make sure your app is healthy.
+
+Other than checking for an active database connection, it's useful to check whether your app has gotten any new users in the past 24 hours (to make sure your signup flow is not broken), check whether there has been any new posts / records created recently (to make sure your users are performing the actions you'd expect them to do in your app), check for external API connections, check whether new records contain values within expected range, etc.
+
+Some other health check examples that you'd need to adapt to the specifics of your particular app:
+```ruby
+check "The Redis connection replies to 'ping' with 'PONG'" do
   make_sure ActiveRecord::Base.connection.active?
 end
 
@@ -46,12 +59,14 @@ check "There's been new signups in the past 24 hours" do
   expect(count).to_be_greater_than(0)
 end
 
-check "The last created Order has a valid total" do
-  last_order = Order.order(created_at: :desc).limit(1).first
-  make_sure last_order.total.is_a?(Numeric), "Order total should be a number"
-  expect(last_order.total).to_be_greater_than(0)
+check "The last created Purchase has a valid total" do
+  last_purchase = Purchase.order(created_at: :desc).limit(1).first
+  make_sure last_purchase.total.is_a?(Numeric), "Purchase total should be a number"
+  expect(last_purchase.total).to_be_greater_than(0)
 end
 ```
+
+Make sure to restart the Rails server every time you modify the `config/allgood.rb` file for the config to reload so the changes apply.
 
 
 ### Available Check Methods
