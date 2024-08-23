@@ -5,10 +5,11 @@ module Allgood
     def index
       @results = run_checks
       @status = @results.all? { |r| r[:success] } ? "ok" : "error"
+      status_code = @status == "ok" ? :ok : :service_unavailable
 
       respond_to do |format|
-        format.html
-        format.json { render json: { status: @status, checks: @results } }
+        format.html { render :index, status: status_code }
+        format.json { render json: { status: @status, checks: @results }, status: status_code }
       end
     rescue StandardError => e
       # Log the error

@@ -4,7 +4,7 @@ Add quick, simple and beautiful health checks to your Rails application.
 
 Allgood allows you to define custom health checks (like: are there any new users in the past 24 hours, does the last post have all the attributes we expect, etc.) in a very intuitive way that reads just like English – and provides a `/healthcheck` endpoint that displays the results in a beautiful page.
 
-You can then use that endpoint to monitor the health of your application via UptimeRobot, Pingdom, etc. by checking it if contains the `❌` emoji.
+You can then use that endpoint to monitor the health of your application via UptimeRobot, Pingdom, etc.
 
 ![alt text](allgood.jpeg)
 
@@ -27,6 +27,10 @@ mount Allgood::Engine => '/healthcheck'
 ```
 
 You can now navigate to `/healthcheck` to see the health check results.
+
+The `/healthcheck` page returns a `200` HTTP code if all checks are successful – and error `503 Service Unavailable` otherwise.
+
+`allgood` is also a nice replacement for the default `/up` Rails action, so Kamal to also checks things like if the database connection is good. Just change the mounting route to `/up` instead of `/healthcheck`
 
 
 ### Configuring Health Checks
