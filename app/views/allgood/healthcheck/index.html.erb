@@ -1,11 +1,30 @@
-<h1>Healthcheck Status</h1>
-<p>Status: <%= @status %></p>
+<style>
+  header {
+    min-height: 20vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    background-color: <%= @status == "ok" ? "Chartreuse" : "FireBrick" %>;
+    font-weight: bold;
+    font-size: 2.5rem;
+    margin-bottom: 1em;
+  }
+
+  .check {
+    margin: 0.5em 0;
+  }
+</style>
+
+<header>
+  <h1><%= @status == "ok" ? "🤙 It's all good" : "❌ Something's wrong" %></h1>
+</header>
 
 <% if @results.any? %>
   <% @results.each do |result| %>
-    <div>
+    <div class="check">
       <%= result[:success] ? "✅" : "❌" %>
-      <%= result[:name] %>: <%= result[:message] %> [took <%= result[:duration] %>ms]
+      <b><%= result[:name] %></b>: <i><%= result[:message] %></i> <code>[<%= result[:duration] %>ms]</code>
     </div>
   <% end %>
 <% else %>
