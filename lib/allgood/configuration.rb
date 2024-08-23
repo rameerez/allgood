@@ -46,7 +46,7 @@ module Allgood
 
     def to_be_greater_than(expected)
       if @actual > expected
-        { success: true, message: "#{@actual || 'nil'} is greater than #{expected} as expected" }
+        { success: true, message: "#{@actual || 'nil'} is greater than #{expected}, as expected" }
       else
         raise CheckFailedError.new("We were expecting #{@actual || 'nil'} to be greater than #{expected} but it's not")
       end
