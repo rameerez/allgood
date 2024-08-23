@@ -1,3 +1,5 @@
+require 'timeout'
+
 module Allgood
   class HealthcheckController < ApplicationController
     def index
@@ -32,18 +34,22 @@ module Allgood
 
     def run_single_check(check)
       start_time = Time.now
-      result = instance_eval(&check[:block])
+      result = { success: false, message: "Check timed out after #{check[:timeout]} seconds" }
+
+      begin
+        Timeout.timeout(check[:timeout]) do
+          result = instance_eval(&check[:block])
+        end
+      rescue Timeout::Error
+        # The result is already set to a timeout message
+      rescue StandardError => e
+        result = { success: false, message: "Error: #{e.message}" }
+      end
+
       {
         name: check[:name],
         success: result[:success],
         message: result[:message],
-        duration: ((Time.now - start_time) * 1000).round(1)
-      }
-    rescue StandardError => e
-      {
-        name: check[:name],
-        success: false,
-        message: "Error: #{e.message}",
         duration: ((Time.now - start_time) * 1000).round(1)
       }
     end
