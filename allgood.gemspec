@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.authors = ["rameerez"]
   spec.email = ["allgood@rameerez.com"]
 
-  spec.summary = "Quickly set up a health check page for your Rails app."
-  spec.description = "Define what health checks you want to run, and see the results in a simple /healthcheck page that you can use to monitor your app with UptimeRobot, Pingdom, or other monitoring services."
+  spec.summary = "Add quick, simple, and beautiful health checks to your Rails application."
+  spec.description = "Define custom, business-oriented health checks for your app (as in: are there any new users in the past 24 hours) and see the results in a simple /healthcheck page that you can use to monitor your app with UptimeRobot, Pingdom, or other monitoring services."
   spec.homepage = "https://github.com/rameerez/allgood"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.0.0"
