@@ -1,10 +1,12 @@
-# Allgood
+# ✅ Allgood - Rails gem for health checks
 
-Add quick health checks to your Rails application.
+Add quick, simple and beautiful health checks to your Rails application.
 
-You to define custom health checks (like: are there any new users in the past 24 hours, does the last post have all the attributes we expect, etc.) – and provides a `/healthcheck` endpoint that displays the results.
+Allgood allows you to define custom health checks (like: are there any new users in the past 24 hours, does the last post have all the attributes we expect, etc.) in a very intuitive way that reads just like English – and provides a `/healthcheck` endpoint that displays the results in a beautiful page.
 
-You can use that endpoint to monitor the health of your application via UptimeRobot, Pingdom, etc.
+You can then use that endpoint to monitor the health of your application via UptimeRobot, Pingdom, etc. by checking it if contains the `❌` emoji.
+
+![alt text](allgood.jpeg)
 
 ## Installation
 
@@ -36,7 +38,7 @@ check "We have an active database connection" do
 end
 
 check "There's been new signups in the past 24 hours" do
-  count = Guess.where(created_at: 24.months.ago..Time.now).count
+  count = User.where(created_at: 24.hours.ago..Time.now).count
   expect(count).to_be_greater_than(0)
 end
 
@@ -54,11 +56,7 @@ end
 - `expect(actual).to_eq(expected)`: Checks if the actual value equals the expected value.
 - `expect(actual).to_be_greater_than(expected)`: Checks if the actual value is greater than the expected value.
 
-You can add more expectation methods as needed in the `Expectation` class.
-
-### Viewing Health Check Results
-
-Once configured, you can view your health check results by visiting `/healthcheck` in your browser. The page will display the status of each check, including any error messages for failed checks.
+Please help us develop by adding more expectation methods in the `Expectation` class!
 
 ## Customization
 
