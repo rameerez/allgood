@@ -52,6 +52,14 @@ module Allgood
       end
     end
 
+    def to_be_less_than(expected)
+      if @actual < expected
+        { success: true, message: "Got: #{@actual || 'nil'} (< #{expected})" }
+      else
+        raise CheckFailedError.new("We were expecting #{@actual || 'nil'} to be less than #{expected} but it's not")
+      end
+    end
+
     # Add more expectations as needed
   end
 
