@@ -1,9 +1,13 @@
 <h1>Healthcheck Status</h1>
 <p>Overall Status: <%= @status %></p>
 
-<% @results.each do |result| %>
-  <div>
-    <%= result[:success] ? "✅" : "❌" %>
-    <%= result[:name] %>: <%= result[:message] %> [query took <%= result[:duration] %>ms]
-  </div>
+<% if @results.any? %>
+  <% @results.each do |result| %>
+    <div>
+      <%= result[:success] ? "✅" : "❌" %>
+      <%= result[:name] %>: <%= result[:message] %> [query took <%= result[:duration] %>ms]
+    </div>
+  <% end %>
+<% else %>
+  <p>No health checks were run. Please check your configuration.</p>
 <% end %>
