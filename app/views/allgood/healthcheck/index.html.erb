@@ -5,7 +5,7 @@
   <% @results.each do |result| %>
     <div>
       <%= result[:success] ? "✅" : "❌" %>
-      <%= result[:name] %>: <%= result[:message] %> [query took <%= result[:duration] %>ms]
+      <%= result[:name] %>: <%= result[:message] %> [took <%= result[:duration] %>ms]
     </div>
   <% end %>
 <% else %>
