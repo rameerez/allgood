@@ -18,10 +18,41 @@ module Allgood
   end
 
   class CheckRunner
-    def make_sure(condition)
-      raise CheckFailedError, "Check failed" unless condition
-      true
+    def make_sure(condition, message = nil)
+      if condition
+        { success: true, message: message || "Check passed" }
+      else
+        raise CheckFailedError.new(message || "Check failed")
+      end
     end
+
+    def expect(actual)
+      Expectation.new(actual)
+    end
+  end
+
+  class Expectation
+    def initialize(actual)
+      @actual = actual
+    end
+
+    def to_eq(expected)
+      if @actual == expected
+        { success: true, message: "#{@actual || 'nil'} equals the expected value of #{expected}" }
+      else
+        raise CheckFailedError.new("Expected #{expected} to equal #{@actual || 'nil'} but it doesn't")
+      end
+    end
+
+    def to_be_greater_than(expected)
+      if @actual > expected
+        { success: true, message: "#{@actual || 'nil'} is greater than #{expected} as expected" }
+      else
+        raise CheckFailedError.new("We were expecting #{@actual || 'nil'} to be greater than #{expected} but it's not")
+      end
+    end
+
+    # Add more expectations as needed
   end
 
   class CheckFailedError < StandardError; end

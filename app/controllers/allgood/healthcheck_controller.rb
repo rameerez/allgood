@@ -38,8 +38,8 @@ module Allgood
 
       begin
         Timeout.timeout(check[:timeout]) do
-          success = Allgood.configuration.run_check(&check[:block])
-          result = { success: success, message: success ? "Check passed" : "Check failed" }
+          check_result = Allgood.configuration.run_check(&check[:block])
+          result = { success: check_result[:success], message: check_result[:message] }
         end
       rescue Timeout::Error
         # The result is already set to a timeout message
