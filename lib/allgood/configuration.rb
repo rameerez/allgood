@@ -38,7 +38,7 @@ module Allgood
 
     def to_eq(expected)
       if @actual == expected
-        { success: true, message: "#{@actual || 'nil'} equals the expected value of #{expected}" }
+        { success: true, message: "Got: #{@actual || 'nil'}" }
       else
         raise CheckFailedError.new("Expected #{expected} to equal #{@actual || 'nil'} but it doesn't")
       end
@@ -46,7 +46,7 @@ module Allgood
 
     def to_be_greater_than(expected)
       if @actual > expected
-        { success: true, message: "#{@actual || 'nil'} is greater than #{expected}, as expected" }
+        { success: true, message: "Got: #{@actual || 'nil'} (> #{expected})" }
       else
         raise CheckFailedError.new("We were expecting #{@actual || 'nil'} to be greater than #{expected} but it's not")
       end
