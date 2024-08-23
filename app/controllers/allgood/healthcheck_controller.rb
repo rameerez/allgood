@@ -1,7 +1,7 @@
 require 'timeout'
 
 module Allgood
-  class HealthcheckController < ApplicationController
+  class HealthcheckController < BaseController
     def index
       @results = run_checks
       @status = @results.all? { |r| r[:success] } ? "ok" : "error"
