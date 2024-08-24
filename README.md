@@ -1,12 +1,18 @@
 # ✅ Allgood - Rails gem for health checks
 
-Add quick, simple, and beautiful health checks to your Rails application.
+[![Gem Version](https://badge.fury.io/rb/allgood.svg)](https://badge.fury.io/rb/allgood)
 
-`allgood` allows you to define custom, business-oriented health checks (as in: are there any new users in the past 24 hours, are they actually using the app, does the last record have all the attributes we expect, etc.) in a very intuitive way that reads just like English – and provides a `/healthcheck` endpoint that displays the results in a beautiful page.
-
-You can then use that endpoint to monitor the health of your application via UptimeRobot, Pingdom, etc. These services will load your `/healthcheck` page every few minutes, so all checks will be run when UptimeRobot fetches the page.
+Add quick, simple, and beautiful health checks to your Rails application via a `/healthcheck` page.
 
 ![alt text](allgood.jpeg)
+
+## How it works
+
+`allgood` allows you to define custom health checks (as in: can the Rails app connect to the DB, are there any new users in the past 24 hours, are they actually using the app, etc.) in a very intuitive way that reads just like English.
+
+It provides a `/healthcheck` endpoint that displays the results in a beautiful page.
+
+You can then [use that endpoint to monitor the health of your application via UptimeRobot](https://x.com/rameerez/status/1827024731133882390?s=46&t=kWXXDo6pcz7mKg3PMPnlTg), Pingdom, etc. These services will load your `/healthcheck` page every few minutes, so all checks will be run when UptimeRobot fetches the page.
 
 ## Installation
 
@@ -17,9 +23,10 @@ gem 'allgood'
 
 Then run `bundle install`.
 
-## Usage
+After installing the gem, you need to mount the `/healthcheck` route and define your health checks in a `config/allgood.rb` file.
 
-### Mounting the Engine
+
+## Mount the `/healthcheck` route
 
 In your `config/routes.rb` file, mount the Allgood engine:
 ```ruby
@@ -28,12 +35,13 @@ mount Allgood::Engine => '/healthcheck'
 
 You can now navigate to `/healthcheck` to see the health check results.
 
-The `/healthcheck` page returns a `200` HTTP code if all checks are successful – and error `503 Service Unavailable` otherwise.
+The `/healthcheck` page returns HTTP codes:
+ - `200 OK` if all checks are successful
+ - `503 Service Unavailable` error otherwise
 
-`allgood` is also a nice replacement for the default `/up` Rails action, so Kamal to also checks things like if the database connection is good. Just change the mounting route to `/up` instead of `/healthcheck`
+Services like UptimeRobot pick up these HTTP codes, which makes monitoring easy. `allgood` is also a nice replacement for the default `/up` Rails action, to make Kamal also check things like if the database connection is good. Just change the mounting route to `/up` instead of `/healthcheck`
 
-
-### Configuring Health Checks
+## Configure your health checks
 
 Create a file `config/allgood.rb` in your Rails application. This is where you'll define your health checks:
 ```ruby
@@ -70,7 +78,7 @@ check "The last created Purchase has a valid total" do
 end
 ```
 
-Other nice checks to have:
+Other nice checks you can use:
 ```ruby
 check "Database can perform a simple query" do
   make_sure ActiveRecord::Base.connection.execute("SELECT 1").any?
@@ -101,7 +109,7 @@ If you have other nice default checks, please open a PR! I'd love to provide a g
 > ⚠️ Make sure to restart the Rails server every time you modify the `config/allgood.rb` file for the config to reload and the changes to apply.
 
 
-### Available Check Methods
+## Available check methods
 
 - `make_sure(condition, message = nil)`: Ensures that the given condition is true.
 - `expect(actual).to_eq(expected)`: Checks if the actual value equals the expected value.
@@ -116,16 +124,15 @@ Please help us develop by adding more expectation methods in the `Expectation` c
 
 By default, each check has a timeout of 10 seconds.
 
-
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+To install this gem onto your local machine, run `bundle exec rake install`.
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/rameerez/allgood Our code of conduct is: just be nice and make your mom proud of what you do and post online.
+Bug reports and pull requests are welcome on GitHub at https://github.com/rameerez/allgood. Our code of conduct is: just be nice and make your mom proud of what you do and post online.
 
 ## License
 
