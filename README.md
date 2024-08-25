@@ -12,7 +12,7 @@ Add quick, simple, and beautiful health checks to your Rails application via a `
 
 It provides a `/healthcheck` endpoint that displays the results in a beautiful page.
 
-You can then [use that endpoint to monitor the health of your application via UptimeRobot](https://x.com/rameerez/status/1827024731133882390?s=46&t=kWXXDo6pcz7mKg3PMPnlTg), Pingdom, etc. These services will load your `/healthcheck` page every few minutes, so all checks will be run when UptimeRobot fetches the page.
+You can then [use that endpoint to monitor the health of your application via UptimeRobot](https://uptimerobot.com/?rid=854006b5fe82e4), Pingdom, etc. These services will load your `/healthcheck` page every few minutes, so all checks will be run when UptimeRobot fetches the page.
 
 ## Installation
 
