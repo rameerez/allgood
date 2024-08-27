@@ -43,7 +43,7 @@ Services like UptimeRobot pick up these HTTP codes, which makes monitoring easy.
 
 ## Configure your health checks
 
-Create a file `config/allgood.rb` in your Rails application. This is where you'll define your health checks:
+Create a file `config/allgood.rb` in your Rails application. This is where you'll define your health checks. Here's a simple example:
 ```ruby
 # config/allgood.rb
 
@@ -52,45 +52,23 @@ check "We have an active database connection" do
 end
 ```
 
-This will run the check upon page load, and will show "Check passed" or "Check failed" next to it. You can also specify a custom human-readable success / error message for each check, so you don't go crazy when things fail and you can't figure out what the check expected output was:
+`allgood` will run all checks upon page load, and will show "Check passed" or "Check failed" next to it. That's it – add as many health checks as you want!
+
+Here's my default `config/allgood.rb` file that should work for most Rails applications, feel free to use it as a starting point:
+
 ```ruby
-check "Cache is accessible and functioning" do
-  Rails.cache.write('health_check_test', 'ok')
-  make_sure Rails.cache.read('health_check_test') == 'ok', "The `health_check_test` key in the cache should contain `'ok'`"
-end
-```
+# config/allgood.rb
 
-As you can see, there's a very simple DSL (Domain-Specific Language) you can use to define health checks. It reads almost like natural English, and allows you to define powerful yet simple checks to make sure your app is healthy.
-
-Other than checking for an active database connection, it's useful to check for business-oriented metrics, such as whether your app has gotten any new users in the past 24 hours (to make sure your signup flow is not broken), check whether there have been any new posts / records created recently (to make sure your users are performing the actions you'd expect them to do in your app), check for recent purchases, check for external API connections, check whether new records contain values within expected range, etc.
-
-Some business health check examples that you'd need to adapt to the specifics of your particular app:
-```ruby
-check "There's been new signups in the past 24 hours" do
-  count = User.where(created_at: 24.hours.ago..Time.now).count
-  expect(count).to_be_greater_than(0)
+check "We have an active database connection" do
+  make_sure ActiveRecord::Base.connection.active?
 end
 
-check "The last created Purchase has a valid total" do
-  last_purchase = Purchase.order(created_at: :desc).limit(1).first
-  make_sure last_purchase.total.is_a?(Numeric), "Purchase total should be a number"
-  expect(last_purchase.total).to_be_greater_than(0)
-end
-```
-
-Other nice checks you can use:
-```ruby
 check "Database can perform a simple query" do
   make_sure ActiveRecord::Base.connection.execute("SELECT 1").any?
 end
 
 check "Database migrations are up to date" do
-  make_sure ActiveRecord::Migration.check_all_pending! == nil
-end
-
-check "Cache is accessible and functioning" do
-  Rails.cache.write('health_check_test', 'ok')
-  make_sure Rails.cache.read('health_check_test') == 'ok', "The `health_check_test` key in the cache should contain `'ok'`"
+  make_sure ActiveRecord::Migration.check_pending! == nil
 end
 
 check "Disk space usage is below 90%" do
@@ -104,12 +82,52 @@ check "Memory usage is below 90%" do
 end
 ```
 
-If you have other nice default checks, please open a PR! I'd love to provide a good default `config/allgood.rb` file.
+And if you're using Redis:
+```ruby
+check "Can connect to Redis" do
+  make_sure Redis.new.ping == "PONG"
+end
+
+check "Cache is accessible and functioning" do
+  Rails.cache.write('health_check_test', 'ok')
+  make_sure Rails.cache.read('health_check_test') == 'ok', "The `health_check_test` key in the cache should return the string `'ok'`"
+end
+```
 
 > ⚠️ Make sure to restart the Rails server every time you modify the `config/allgood.rb` file for the config to reload and the changes to apply.
 
 
-## Available check methods
+### The `allgood` DSL
+
+As you can see, there's a very simple DSL (Domain-Specific Language) you can use to define health checks. It reads almost like natural English, and allows you to define powerful yet simple checks to make sure your app is healthy.
+
+For example, you can specify a custom human-readable success / error message for each check, so you don't go crazy when things fail and you can't figure out what the check expected output was:
+```ruby
+check "Cache is accessible and functioning" do
+  Rails.cache.write('health_check_test', 'ok')
+  make_sure Rails.cache.read('health_check_test') == 'ok', "The `health_check_test` key in the cache should contain `'ok'`"
+end
+```
+
+Other than checking for an active database connection, it's useful to check for business-oriented metrics, such as whether your app has gotten any new users in the past 24 hours (to make sure your signup flow is not broken), check whether there have been any new posts / records created recently (to make sure your users are performing the actions you'd expect them to do in your app), check for recent purchases, check for external API connections, check whether new records contain values within expected range, etc.
+
+Some business health check examples that you'd need to adapt to the specifics of your particular app:
+```ruby
+# Adapt these to your app specifics
+
+check "There's been new signups in the past 24 hours" do
+  count = User.where(created_at: 24.hours.ago..Time.now).count
+  expect(count).to_be_greater_than(0)
+end
+
+check "The last created Purchase has a valid total" do
+  last_purchase = Purchase.order(created_at: :desc).limit(1).first
+  make_sure last_purchase.total.is_a?(Numeric), "Purchase total should be a number"
+  expect(last_purchase.total).to_be_greater_than(0)
+end
+```
+
+### Available check methods
 
 - `make_sure(condition, message = nil)`: Ensures that the given condition is true.
 - `expect(actual).to_eq(expected)`: Checks if the actual value equals the expected value.
