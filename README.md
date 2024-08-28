@@ -68,7 +68,7 @@ check "Database can perform a simple query" do
 end
 
 check "Database migrations are up to date" do
-  make_sure ActiveRecord::Migration.check_pending! == nil
+  make_sure ActiveRecord::Migration.check_all_pending! == nil
 end
 
 check "Disk space usage is below 90%" do
