@@ -6,7 +6,7 @@ Gem::Specification.new do |spec|
   spec.name = "allgood"
   spec.version = Allgood::VERSION
   spec.authors = ["rameerez"]
-  spec.email = ["allgood@rameerez.com"]
+  spec.email = ["rubygems@rameerez.com"]
 
   spec.summary = "Add quick, simple, and beautiful health checks to your Rails application."
   spec.description = "Define custom health checks for your app (as in: are there any new users in the past 24 hours) and see the results in a simple /healthcheck page that you can use to monitor your app with UptimeRobot, Pingdom, or other monitoring services – also useful as a replacement /up endpoint for Kamal."
@@ -18,7 +18,7 @@ Gem::Specification.new do |spec|
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/rameerez/allgood"
-  spec.metadata["changelog_uri"] = "https://github.com/rameerez/allgood"
+  spec.metadata["changelog_uri"] = "https://github.com/rameerez/allgood/blob/main/CHANGELOG.md"
 
   # Specify which files should be added to the gem when it is released.
   # The `git ls-files -z` loads the files in the RubyGem that have been added into git.
