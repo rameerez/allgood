@@ -48,7 +48,7 @@ Create a file `config/allgood.rb` in your Rails application. This is where you'l
 # config/allgood.rb
 
 check "We have an active database connection" do
-  make_sure ActiveRecord::Base.connection.active?
+  make_sure ActiveRecord::Base.connection.connect! && ActiveRecord::Base.connection.active?
 end
 ```
 
@@ -60,7 +60,7 @@ Here's my default `config/allgood.rb` file that should work for most Rails appli
 # config/allgood.rb
 
 check "We have an active database connection" do
-  make_sure ActiveRecord::Base.connection.active?
+  make_sure ActiveRecord::Base.connection.connect! && ActiveRecord::Base.connection.active?
 end
 
 check "Database can perform a simple query" do
