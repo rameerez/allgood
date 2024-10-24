@@ -94,6 +94,8 @@ check "Cache is accessible and functioning" do
 end
 ```
 
+I've also added an example [`config/allgood.rb`](examples/allgood.rb) file in the `examples` folder that you can use as a starting point.
+
 > ⚠️ Make sure to restart the Rails server every time you modify the `config/allgood.rb` file for the config to reload and the changes to apply.
 
 
