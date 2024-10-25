@@ -1,5 +1,5 @@
 check "We have an active database connection" do
-  make_sure ActiveRecord::Base.connection.connect! && ActiveRecord::Base.connection.active?
+  make_sure ActiveRecord::Base.connection.connect!.active?
 end
 
 check "The database can perform a simple query" do
