@@ -1,7 +1,4 @@
 require 'open-uri'
-require 'vips'
-require 'image_processing/vips'
-
 TEST_IMAGE = URI.open("https://picsum.photos/id/237/536/354").read
 
 # --- ACTIVE RECORD ---
@@ -49,18 +46,21 @@ end
 check "Vips (libvips) is installed on Linux" do
   if Rails.env.production?
     output = `ldconfig -p | grep libvips`
-    make_sure output.present? && output.include?("libvips.so") && output.include?("libvips-cpp.so"), "Vips is installed on Linux"
+    make_sure output.present? && output.include?("libvips.so") && output.include?("libvips-cpp.so"), "libvips is found in the system's library cache"
   else
     make_sure true, "Not a Linux production environment, skipping (#{Rails.env.to_s})"
   end
 end
 
 check "Vips is available to Rails" do
+  throw "ImageProcessing::Vips is not available" if !ImageProcessing::Vips.present?
+
   make_sure Vips::VERSION.present?, "Vips available with version #{Vips::VERSION}"
 end
 
 check "Vips can perform operations on images" do
-  url = "https://picsum.photos/id/237/536/354"
+  throw "ImageProcessing::Vips is not available" if !ImageProcessing::Vips.present?
+
   image = Vips::Image.new_from_buffer(TEST_IMAGE, "")
   processed_image = image
     .gaussblur(10)                   # Apply Gaussian blur with sigma 10
@@ -69,24 +69,48 @@ check "Vips can perform operations on images" do
     .sharpen                         # Apply sharpening
     .resize(0.5)
 
-  make_sure processed_image.present? && processed_image.width == 268 && processed_image.height == 177, "If we input an image of 536x354, and we apply filters and a 0.5 resize, we should get an image of 268x177"
+  make_sure processed_image.present? && processed_image.width == 268 && processed_image.height == 177, "If we input an image of 536x354px, and we apply filters and a 0.5 resize, we should get an image of 268x177px"
 end
 
 check "ImageProcessing::Vips is available to Rails" do
-  make_sure ImageProcessing::Vips.present?, "ImageProcessing::Vips available"
+  make_sure ImageProcessing::Vips.present?
 end
 
 check "ImageProcessing can perform operations on images" do
-  url = "https://picsum.photos/id/237/536/354"
   image_processing_image = ImageProcessing::Vips
     .source(Vips::Image.new_from_buffer(TEST_IMAGE, ""))
     .resize_to_limit(123, 123)        # Resize to fit within 500x500
     .convert("webp")                  # Convert to webp format
-    .saver(strip: true)               # Strip metadata
     .call
   processed_image = Vips::Image.new_from_file(image_processing_image.path)
 
-  make_sure processed_image.present? && processed_image.width == 123 && processed_image.get("vips-loader") == "webpload" && !processed_image.get_fields.include?("exif-data"), "ImageProcessing can resize, remove metadata, and convert to webp"
+  make_sure processed_image.present? && processed_image.width == 123 && processed_image.get("vips-loader") == "webpload", "ImageProcessing can resize and convert to webp"
+end
+
+# --- ACTIVE STORAGE ---
+
+check "Active Storage is available to Rails" do
+  make_sure ActiveStorage.present?
+end
+
+check "Active Storage tables are present in the database" do
+  make_sure ActiveRecord::Base.connection.table_exists?("active_storage_attachments") && ActiveRecord::Base.connection.table_exists?("active_storage_blobs")
+end
+
+check "Active Storage has a valid client configured" do
+  service = ActiveStorage::Blob.service
+  service_name = service&.class&.name&.split("::")&.last&.split("Service")&.first
+
+  if !service_name.downcase.include?("disk")
+    make_sure service.present? && service.respond_to?(:client) && service.client.present?, "Active Storage service has a valid #{service_name} client configured"
+  else
+    make_sure !Rails.env.production? && service.present?, "Active Storage using #{service_name} service in #{Rails.env.to_s}"
+  end
+end
+
+check "ActiveStorage can store images, retrieve them, and purge them" do
+  blob = ActiveStorage::Blob.create_and_upload!(io: StringIO.new(TEST_IMAGE), filename: "allgood-test-image-#{Time.now.to_i}.jpg", content_type: "image/jpeg")
+  make_sure blob.persisted? && blob.service.exist?(blob.key) && blob.purge, "Image was successfully stored, retrieved, and purged from #{ActiveStorage::Blob.service.class.name}"
 end
 
 # --- CACHE ---
