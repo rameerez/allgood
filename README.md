@@ -4,7 +4,7 @@
 
 Add quick, simple, and beautiful health checks to your Rails application via a `/healthcheck` page.
 
-![alt text](allgood.jpeg)
+![Example dashboard of the Allgood health check page](allgood.jpeg)
 
 ## How it works
 
@@ -85,32 +85,22 @@ check "Memory usage is below 90%" do
 end
 ```
 
-And if you're using Redis:
-```ruby
-check "Can connect to Redis" do
-  make_sure Redis.new.ping == "PONG"
-end
+I've also added an example [`config/allgood.rb`](examples/allgood.rb) file in the `examples` folder, with very comprehensive checks for a Rails 8+ app, that you can use as a starting point.
 
-check "Cache is accessible and functioning" do
-  Rails.cache.write('health_check_test', 'ok')
-  make_sure Rails.cache.read('health_check_test') == 'ok', "The `health_check_test` key in the cache should return the string `'ok'`"
-end
-```
-
-I've also added an example [`config/allgood.rb`](examples/allgood.rb) file in the `examples` folder that you can use as a starting point.
-
-> ⚠️ Make sure to restart the Rails server every time you modify the `config/allgood.rb` file for the config to reload and the changes to apply.
-
+> [!IMPORTANT]
+> Make sure you restart the Rails server (`bin/rails s`) every time you modify the `config/allgood.rb` file for the changes to apply – the `allgood` config is only loaded once when the Rails server starts.
 
 ### The `allgood` DSL
 
-As you can see, there's a very simple DSL (Domain-Specific Language) you can use to define health checks. It reads almost like natural English, and allows you to define powerful yet simple checks to make sure your app is healthy.
+As you can see, there's a very simple DSL (Domain-Specific Language) you can use to define health checks.
+
+It reads almost like natural English, and allows you to define powerful yet simple checks to make sure your app is healthy.
 
 For example, you can specify a custom human-readable success / error message for each check, so you don't go crazy when things fail and you can't figure out what the check expected output was:
 ```ruby
 check "Cache is accessible and functioning" do
-  Rails.cache.write('health_check_test', 'ok')
-  make_sure Rails.cache.read('health_check_test') == 'ok', "The `health_check_test` key in the cache should contain `'ok'`"
+  Rails.cache.write('allgood_test', 'ok')
+  make_sure Rails.cache.read('allgood_test') == 'ok', "The `allgood_test` key in the cache should contain `'ok'`"
 end
 ```
 
@@ -141,11 +131,56 @@ end
 
 Please help us develop by adding more expectation methods in the `Expectation` class!
 
-## Customization
+### Run checks only in specific environments or under certain conditions
 
-### Timeout
+You can also make certain checks run only in specific environments or under certain conditions. Some examples:
 
-By default, each check has a timeout of 10 seconds.
+```ruby
+# Only run in production
+check "There have been new user signups in the past hour", only: :production do
+  make_sure User.where(created_at: 1.hour.ago..Time.now).count.positive?
+end
+
+# Run in both staging and production
+check "External API is responsive", only: [:staging, :production] do
+  # ...
+end
+
+# Run everywhere except development
+check "A SolidCable connection is active and healthy", except: :development do
+  # ...
+end
+
+# Using if with a direct boolean
+check "Feature flag is enabled", if: ENV['FEATURE_ENABLED'] == 'true' do
+  # ...
+end
+
+# Using if with a Proc for more complex conditions
+check "Complex condition", if: -> { User.count > 1000 && User.last.created_at < 10.minutes.ago } do
+  # ...
+end
+
+# Override default timeout (in seconds) for specific checks
+# By default, each check has a timeout of 10 seconds
+check "Slow external API", timeout: 30 do
+  # ...
+end
+
+# Combine multiple conditions
+check "Complex check",
+      only: :production,
+      if: -> { User.count > 1000 },
+      timeout: 15 do
+  # ...
+end
+```
+
+When a check is skipped due to its conditions not being met, it will appear in the healthcheck page with a skip emoji (⏭️) and a clear explanation of why it was skipped.
+
+![Example dashboard of the Allgood health check page with skipped checks](allgood_skipped.webp)
+
+_Note: the `allgood` health check dashboard has an automatic dark mode, based on the system's appearance settings._
 
 ## Development
 
