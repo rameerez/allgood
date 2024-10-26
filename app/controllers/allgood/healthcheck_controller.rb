@@ -29,7 +29,17 @@ module Allgood
 
     def run_checks
       Allgood.configuration.checks.map do |check|
-        run_single_check(check)
+        if check[:status] == :skipped
+          {
+            name: check[:name],
+            success: true,
+            skipped: true,
+            message: check[:skip_reason],
+            duration: 0
+          }
+        else
+          run_single_check(check)
+        end
       end
     end
 

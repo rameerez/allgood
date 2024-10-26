@@ -14,6 +14,10 @@
   .check {
     margin: 0.5em 0;
   }
+
+  .skipped {
+    opacity: 0.6;
+  }
 </style>
 
 <header>
@@ -22,9 +26,16 @@
 
 <% if @results.any? %>
   <% @results.each do |result| %>
-    <div class="check">
-      <%= result[:success] ? "✅" : "❌" %>
-      <b><%= result[:name] %></b>: <i><%= result[:message] %></i> <code>[<%= result[:duration] %>ms]</code>
+    <div class="check <%= 'skipped' if result[:skipped] %>">
+      <% if result[:skipped] %>
+        ⏭️
+      <% else %>
+        <%= result[:success] ? "✅" : "❌" %>
+      <% end %>
+      <b><%= result[:name] %></b>: <i><%= result[:message] %></i> 
+      <% unless result[:skipped] %>
+        <code>[<%= result[:duration] %>ms]</code>
+      <% end %>
     </div>
   <% end %>
 <% else %>

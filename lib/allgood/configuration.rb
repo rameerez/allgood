@@ -9,37 +9,58 @@ module Allgood
     end
 
     def check(name, **options, &block)
+      check_info = {
+        name: name,
+        block: block,
+        timeout: options[:timeout] || @default_timeout,
+        options: options,
+        status: :pending
+      }
+
       # Handle environment-specific options
       if options[:only]
         environments = Array(options[:only])
-        return unless environments.include?(Rails.env.to_sym)
+        unless environments.include?(Rails.env.to_sym)
+          check_info[:status] = :skipped
+          check_info[:skip_reason] = "Only runs in #{environments.join(', ')}"
+          @checks << check_info
+          return
+        end
       end
 
       if options[:except]
         environments = Array(options[:except])
-        return if environments.include?(Rails.env.to_sym)
+        if environments.include?(Rails.env.to_sym)
+          check_info[:status] = :skipped
+          check_info[:skip_reason] = "This check doesn't run in #{environments.join(', ')}"
+          @checks << check_info
+          return
+        end
       end
 
       # Handle conditional checks
       if options[:if]
         condition = options[:if]
-        return unless condition.is_a?(Proc) ? condition.call : condition
+        unless condition.is_a?(Proc) ? condition.call : condition
+          check_info[:status] = :skipped
+          check_info[:skip_reason] = "Check condition not met"
+          @checks << check_info
+          return
+        end
       end
 
       if options[:unless]
         condition = options[:unless]
-        return if condition.is_a?(Proc) ? condition.call : condition
+        if condition.is_a?(Proc) ? condition.call : condition
+          check_info[:status] = :skipped
+          check_info[:skip_reason] = "Check `unless` condition met"
+          @checks << check_info
+          return
+        end
       end
 
-      # Set timeout (default or custom)
-      timeout = options[:timeout] || @default_timeout
-
-      @checks << {
-        name: name,
-        block: block,
-        timeout: timeout,
-        options: options
-      }
+      check_info[:status] = :active
+      @checks << check_info
     end
 
     def run_check(&block)
