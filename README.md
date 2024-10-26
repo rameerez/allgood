@@ -14,6 +14,8 @@ It provides a `/healthcheck` endpoint that displays the results in a beautiful p
 
 You can then [use that endpoint to monitor the health of your application via UptimeRobot](https://uptimerobot.com/?rid=854006b5fe82e4), Pingdom, etc. These services will load your `/healthcheck` page every few minutes, so all checks will be run when UptimeRobot fetches the page.
 
+`allgood` aims to provide developers with peace of mind by answering the question "is production okay?" at a glance.
+
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -39,10 +41,12 @@ The `/healthcheck` page returns HTTP codes:
  - `200 OK` if all checks are successful
  - `503 Service Unavailable` error otherwise
 
-Services like UptimeRobot pick up these HTTP codes, which makes monitoring easy. `allgood` is also a nice replacement for the default `/up` Rails action, to make Kamal also check things like if the database connection is good. Just change the mounting route to `/up` instead of `/healthcheck`
+Services like UptimeRobot pick up these HTTP codes, which makes monitoring easy.
+
+**Kamal**: `allgood` can also be used as a replacement for the default `/up` Rails action, to make [Kamal](https://github.com/basecamp/kamal) check things like if the database connection is healthy when deploying your app's containers. Just change `allgood`'s mounting route to `/up` instead of `/healthcheck`, or configure Kamal to use the `allgood` route.
 
 > [!TIP]
-> If you're using Kamal with `allgood`, container deployment will fail if any checks fail, [without feedback from Kamal](https://github.com/rameerez/allgood/issues/1) on what went wrong. To avoid this, you can either keep the `allgood.rb` file very minimal (e.g., only check for active DB connection, migrations up to date, etc.) so the app deployment succeeds, or you can use the default `/up` route for Kamal, and then mount `allgood` on another route for more advanced business-oriented checks. What you want to avoid is your app deployment failing because of you didn't get any users in the past hour, or something like that.
+> If you're using Kamal with `allgood`, container deployment will fail if any defined checks fail, [without feedback from Kamal](https://github.com/rameerez/allgood/issues/1) on what went wrong. Your containers will just not start, and you'll get a generic error message. To avoid this, you can either keep the `allgood.rb` file very minimal (e.g., only check for active DB connection, migrations up to date, etc.) so the app deployment is likely to succeed, or you can use the default `/up` route for Kamal, and then mount `allgood` on another route for more advanced business-oriented checks. What you want to avoid is your app deployment failing because of usage-dependent or business-oriented checks, like your app not deploying because it didn't get any users in the past hour, or something like that.
 
 ## Configure your health checks
 
