@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.email = ["rubygems@rameerez.com"]
 
   spec.summary = "Add quick, simple, and beautiful health checks to your Rails application."
-  spec.description = "Define custom health checks for your app (as in: are there any new users in the past 24 hours) and see the results in a simple /healthcheck page that you can use to monitor your app with UptimeRobot, Pingdom, or other monitoring services – also useful as a replacement /up endpoint for Kamal."
+  spec.description = "Define custom health checks for your app (as in: are there any new users in the past 24 hours) and see the results in a simple /healthcheck page that you can use to monitor your production app with UptimeRobot, Pingdom, or other monitoring services. It's also useful as a drop-in replacement for the default `/up` health check endpoint for Kamal deployments."
   spec.homepage = "https://github.com/rameerez/allgood"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.0.0"
