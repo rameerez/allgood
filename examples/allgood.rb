@@ -155,6 +155,17 @@ check "Memory usage is below 90%" do
   expect(usage).to_be_less_than(90)
 end
 
+# --- SITEMAP ---
+
+check "The sitemap generator is available" do
+  make_sure SitemapGenerator.present?
+end
+
+check "sitemap.xml.gz exists", only: :production do
+  make_sure File.exist?(Rails.public_path.join("sitemap.xml.gz"))
+end
+
+
 # --- USAGE-DEPENDENT CHECKS ---
 
 check "SolidQueue has processed jobs in the last 24 hours", only: :production do
