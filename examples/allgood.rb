@@ -48,7 +48,7 @@ check "Vips (libvips) is installed on Linux" do
     output = `ldconfig -p | grep libvips`
     make_sure output.present? && output.include?("libvips.so") && output.include?("libvips-cpp.so"), "libvips is found in the system's library cache"
   else
-    make_sure true, "Not a Linux production environment, skipping (#{Rails.env.to_s})"
+    make_sure true, "Not a production environment, skipping (#{Rails.env.to_s})"
   end
 end
 
@@ -121,6 +121,32 @@ check "Cache is accessible and functioning" do
   make_sure Rails.cache.read("allgood_health_check_test") == cache_value, "The `allgood_health_check_test` key in the cache should return the string `#{cache_value}`"
 end
 
+# --- SOLID QUEUE ---
+
+check "SolidQueue is available to Rails" do
+  make_sure SolidQueue.present?
+end
+
+check "We have an active SolidQueue connection to the database" do
+  make_sure SolidQueue::Job.connection.connect!.active?
+end
+
+check "SolidQueue tables are present in the database" do
+  make_sure SolidQueue::Job.connection.table_exists?("solid_queue_jobs") && SolidQueue::Job.connection.table_exists?("solid_queue_failed_executions") && SolidQueue::Job.connection.table_exists?("solid_queue_semaphores")
+end
+
+check "The percentage of failed jobs in the last 24 hours is less than 1%" do
+  failed_jobs = SolidQueue::FailedExecution.where(created_at: 24.hours.ago..Time.now).count
+  all_jobs = SolidQueue::Job.where(created_at: 24.hours.ago..Time.now).count
+
+  if all_jobs > 10
+    percentage = all_jobs > 0 ? (failed_jobs.to_f / all_jobs.to_f * 100) : 0
+    make_sure percentage < 1, "#{percentage.round(2)}% of jobs are failing"
+  else
+    make_sure true, "Not enough jobs to calculate meaningful failure rate (only #{all_jobs} jobs in last 24h)"
+  end
+end
+
 # --- SYSTEM ---
 
 check "Disk space usage is below 90%" do
@@ -131,4 +157,14 @@ end
 check "Memory usage is below 90%" do
   usage = `free | grep Mem | awk '{print $3/$2 * 100.0}' | cut -d. -f1`.to_i
   expect(usage).to_be_less_than(90)
+end
+
+# --- PAY / STRIPE ---
+
+# TODO: no error webhooks in the past 24 hours
+
+# --- USAGE-DEPENDENT CHECKS ---
+
+check "SolidQueue has processed jobs in the last 24 hours" do
+  make_sure SolidQueue::Job.where(created_at: 24.hours.ago..Time.now).order(created_at: :desc).limit(1).any?
 end
