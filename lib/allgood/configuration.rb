@@ -8,8 +8,38 @@ module Allgood
       @default_timeout = 10 # Default timeout of 10 seconds
     end
 
-    def check(name, &block)
-      @checks << { name: name, block: block, timeout: @default_timeout }
+    def check(name, **options, &block)
+      # Handle environment-specific options
+      if options[:only]
+        environments = Array(options[:only])
+        return unless environments.include?(Rails.env.to_sym)
+      end
+
+      if options[:except]
+        environments = Array(options[:except])
+        return if environments.include?(Rails.env.to_sym)
+      end
+
+      # Handle conditional checks
+      if options[:if]
+        condition = options[:if]
+        return unless condition.is_a?(Proc) ? condition.call : condition
+      end
+
+      if options[:unless]
+        condition = options[:unless]
+        return if condition.is_a?(Proc) ? condition.call : condition
+      end
+
+      # Set timeout (default or custom)
+      timeout = options[:timeout] || @default_timeout
+
+      @checks << {
+        name: name,
+        block: block,
+        timeout: timeout,
+        options: options
+      }
     end
 
     def run_check(&block)
