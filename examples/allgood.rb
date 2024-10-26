@@ -43,23 +43,19 @@ end
 
 # --- IMAGE PROCESSING ---
 
-check "Vips (libvips) is installed on Linux" do
-  if Rails.env.production?
-    output = `ldconfig -p | grep libvips`
-    make_sure output.present? && output.include?("libvips.so") && output.include?("libvips-cpp.so"), "libvips is found in the system's library cache"
-  else
-    make_sure true, "Not a production environment, skipping (#{Rails.env.to_s})"
-  end
+check "Vips (libvips) is installed on Linux", except: :development do
+  output = `ldconfig -p | grep libvips`
+  make_sure output.present? && output.include?("libvips.so") && output.include?("libvips-cpp.so"), "libvips is found in the Linux system's library cache"
 end
 
 check "Vips is available to Rails" do
-  throw "ImageProcessing::Vips is not available" if !ImageProcessing::Vips.present?
+  throw "ImageProcessing::Vips is not available" if !ImageProcessing::Vips.present? # Need this line to load `Vips`
 
   make_sure Vips::VERSION.present?, "Vips available with version #{Vips::VERSION}"
 end
 
 check "Vips can perform operations on images" do
-  throw "ImageProcessing::Vips is not available" if !ImageProcessing::Vips.present?
+  throw "ImageProcessing::Vips is not available" if !ImageProcessing::Vips.present? # Need this line to load `Vips`
 
   image = Vips::Image.new_from_buffer(TEST_IMAGE, "")
   processed_image = image
@@ -135,7 +131,7 @@ check "SolidQueue tables are present in the database" do
   make_sure SolidQueue::Job.connection.table_exists?("solid_queue_jobs") && SolidQueue::Job.connection.table_exists?("solid_queue_failed_executions") && SolidQueue::Job.connection.table_exists?("solid_queue_semaphores")
 end
 
-check "The percentage of failed jobs in the last 24 hours is less than 1%" do
+check "The percentage of failed jobs in the last 24 hours is less than 1%", only: :production do
   failed_jobs = SolidQueue::FailedExecution.where(created_at: 24.hours.ago..Time.now).count
   all_jobs = SolidQueue::Job.where(created_at: 24.hours.ago..Time.now).count
 
@@ -159,12 +155,12 @@ check "Memory usage is below 90%" do
   expect(usage).to_be_less_than(90)
 end
 
-# --- PAY / STRIPE ---
-
-# TODO: no error webhooks in the past 24 hours
-
 # --- USAGE-DEPENDENT CHECKS ---
 
-check "SolidQueue has processed jobs in the last 24 hours" do
+check "SolidQueue has processed jobs in the last 24 hours", only: :production do
   make_sure SolidQueue::Job.where(created_at: 24.hours.ago..Time.now).order(created_at: :desc).limit(1).any?
 end
+
+# --- PAY / STRIPE ---
+
+# TODO: no error webhooks in the past 24 hours, new sales in the past few hours, etc.
