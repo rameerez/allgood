@@ -106,7 +106,10 @@ end
 
 check "ActiveStorage can store images, retrieve them, and purge them" do
   blob = ActiveStorage::Blob.create_and_upload!(io: StringIO.new(TEST_IMAGE), filename: "allgood-test-image-#{Time.now.to_i}.jpg", content_type: "image/jpeg")
-  make_sure blob.persisted? && blob.service.exist?(blob.key) && blob.purge, "Image was successfully stored, retrieved, and purged from #{ActiveStorage::Blob.service.class.name}"
+  blob_key = blob.key
+  make_sure blob.persisted? && blob.service.exist?(blob_key)
+  blob.purge
+  make_sure !blob.service.exist?(blob_key), "Image needs to be successfully stored, retrieved, and purged from #{ActiveStorage::Blob.service.name} (#{ActiveStorage::Blob.service.class.name})"
 end
 
 # --- CACHE ---
@@ -145,12 +148,12 @@ end
 
 # --- SYSTEM ---
 
-check "Disk space usage is below 90%" do
+check "Disk space usage is below 90%", only: :production do
   usage = `df -h / | tail -1 | awk '{print $5}' | sed 's/%//'`.to_i
   expect(usage).to_be_less_than(90)
 end
 
-check "Memory usage is below 90%" do
+check "Memory usage is below 90%", only: :production do
   usage = `free | grep Mem | awk '{print $3/$2 * 100.0}' | cut -d. -f1`.to_i
   expect(usage).to_be_less_than(90)
 end
