@@ -146,6 +146,42 @@ check "The percentage of failed jobs in the last 24 hours is less than 1%", only
   end
 end
 
+# --- ACTION CABLE ---
+
+check "ActionCable is configured and running" do
+  make_sure ActionCable.server.present?, "ActionCable server should be running"
+end
+
+check "ActionCable is configured to accept connections with a valid adapter" do
+  make_sure ActionCable.server.config.allow_same_origin_as_host, "ActionCable server should be configured to accept connections"
+
+  adapter = ActionCable.server.config.cable["adapter"]
+
+  if Rails.env.production?
+    make_sure adapter.in?(["solid_cable", "redis"]), "ActionCable running #{adapter} adapter in #{Rails.env.to_s}"
+  else
+    make_sure adapter.in?(["solid_cable", "async"]), "ActionCable running #{adapter} adapter in #{Rails.env.to_s}"
+  end
+end
+
+check "ActionCable can broadcast messages and store them in SolidCable" do
+  test_message = "allgood_test_#{Time.now.to_i}"
+
+  begin
+    ActionCable.server.broadcast("allgood_test_channel", { message: test_message })
+
+    # Verify message was stored in SolidCable
+    message = SolidCable::Message.where(channel: "allgood_test_channel")
+                                .order(created_at: :desc)
+                                .first
+
+    make_sure message.present?, "Message should be stored in SolidCable"
+    make_sure message.payload.include?(test_message) && message.destroy, "Message payload should contain our test message"
+  rescue => e
+    make_sure false, "Failed to broadcast/verify message: #{e.message}"
+  end
+end
+
 # --- SYSTEM ---
 
 check "Disk space usage is below 90%", only: :production do
