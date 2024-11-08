@@ -4,11 +4,13 @@
 
 Add quick, simple, and beautiful health checks to your Rails application via a `/healthcheck` page.
 
+Use it for smoke testing, to make sure your app is healthy and functioning as expected.
+
 ![Example dashboard of the Allgood health check page](allgood.jpeg)
 
 ## How it works
 
-`allgood` allows you to define custom health checks (as in: can the Rails app connect to the DB, are there any new users in the past 24 hours, are they actually using the app, etc.) in a very intuitive way that reads just like English.
+`allgood` allows you to define custom health checks / smoke tests (as in: can the Rails app connect to the DB, are there any new users in the past 24 hours, are they actually using the app, etc.) in a very intuitive way that reads just like English.
 
 It provides a `/healthcheck` endpoint that displays the results in a beautiful page.
 
