@@ -1,3 +1,10 @@
+## [0.3.0] - 2024-10-27
+
+- Added rate limiting for expensive checks with the `run: "N times per day/hour"` option
+- Added a cache mechanism to store check results and error states, which allows for rate limiting and avoiding redundant runs when checks fail
+- Added automatic cache key expiration
+- Added error handling and feedback for rate-limited checks
+
 ## [0.2.0] - 2024-10-26
 
 - Improved the `allgood` DSL by adding optional conditionals on when individual checks are run

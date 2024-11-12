@@ -182,6 +182,26 @@ check "Complex check",
 end
 ```
 
+### Rate Limiting Expensive Checks
+
+For expensive operations (like testing paid APIs), you can limit how often checks run:
+
+```ruby
+# Run expensive checks a limited number of times
+check "OpenAI is responding with a valid LLM message", run: "2 times per day" do
+  # expensive API call
+end
+
+check "Analytics can be processed", run: "4 times per hour" do
+  # expensive operation
+end
+```
+
+Important notes:
+- Rate limits reset at the start of each period (hour/day)
+- The error state persists between rate-limited runs
+- Rate-limited checks show clear feedback about remaining runs and next reset time
+
 When a check is skipped due to its conditions not being met, it will appear in the healthcheck page with a skip emoji (⏭️) and a clear explanation of why it was skipped.
 
 ![Example dashboard of the Allgood health check page with skipped checks](allgood_skipped.webp)
