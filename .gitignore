@@ -9,4 +9,11 @@
 /dist/
 *.gem
 
+# Ignore bundler and vendor-installed gems
+/vendor/
+/vendor/**
+/vendor/bundle/
+/vendor/cache/
+/vendor/ruby/
+
 TODO
