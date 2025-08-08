@@ -1,0 +1,18 @@
+current directory: /workspace/vendor/bundle/ruby/3.3.0/gems/websocket-driver-0.7.6/ext/websocket-driver
+/usr/bin/ruby3.3 -I/usr/lib/ruby/vendor_ruby extconf.rb
+creating Makefile
+
+current directory: /workspace/vendor/bundle/ruby/3.3.0/gems/websocket-driver-0.7.6/ext/websocket-driver
+make DESTDIR\= sitearchdir\=./.gem.20250808-3254-vpcqp7 sitelibdir\=./.gem.20250808-3254-vpcqp7 clean
+
+current directory: /workspace/vendor/bundle/ruby/3.3.0/gems/websocket-driver-0.7.6/ext/websocket-driver
+make DESTDIR\= sitearchdir\=./.gem.20250808-3254-vpcqp7 sitelibdir\=./.gem.20250808-3254-vpcqp7
+compiling websocket_mask.c
+linking shared-object websocket_mask.so
+
+current directory: /workspace/vendor/bundle/ruby/3.3.0/gems/websocket-driver-0.7.6/ext/websocket-driver
+make DESTDIR\= sitearchdir\=./.gem.20250808-3254-vpcqp7 sitelibdir\=./.gem.20250808-3254-vpcqp7 install
+/usr/bin/install -c -m 0755 websocket_mask.so ./.gem.20250808-3254-vpcqp7
+
+current directory: /workspace/vendor/bundle/ruby/3.3.0/gems/websocket-driver-0.7.6/ext/websocket-driver
+make DESTDIR\= sitearchdir\=./.gem.20250808-3254-vpcqp7 sitelibdir\=./.gem.20250808-3254-vpcqp7 clean

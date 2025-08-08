@@ -1,0 +1,18 @@
+current directory: /workspace/vendor/bundle/ruby/3.3.0/gems/racc-1.8.1/ext/racc/cparse
+/usr/bin/ruby3.3 -I/usr/lib/ruby/vendor_ruby extconf.rb
+creating Makefile
+
+current directory: /workspace/vendor/bundle/ruby/3.3.0/gems/racc-1.8.1/ext/racc/cparse
+make DESTDIR\= sitearchdir\=./.gem.20250808-3254-figvf5 sitelibdir\=./.gem.20250808-3254-figvf5 clean
+
+current directory: /workspace/vendor/bundle/ruby/3.3.0/gems/racc-1.8.1/ext/racc/cparse
+make DESTDIR\= sitearchdir\=./.gem.20250808-3254-figvf5 sitelibdir\=./.gem.20250808-3254-figvf5
+compiling cparse.c
+linking shared-object racc/cparse.so
+
+current directory: /workspace/vendor/bundle/ruby/3.3.0/gems/racc-1.8.1/ext/racc/cparse
+make DESTDIR\= sitearchdir\=./.gem.20250808-3254-figvf5 sitelibdir\=./.gem.20250808-3254-figvf5 install
+/usr/bin/install -c -m 0755 cparse.so ./.gem.20250808-3254-figvf5/racc
+
+current directory: /workspace/vendor/bundle/ruby/3.3.0/gems/racc-1.8.1/ext/racc/cparse
+make DESTDIR\= sitearchdir\=./.gem.20250808-3254-figvf5 sitelibdir\=./.gem.20250808-3254-figvf5 clean

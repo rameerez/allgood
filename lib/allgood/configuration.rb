@@ -51,7 +51,7 @@ module Allgood
       end
 
       # Handle conditional checks
-      if options[:if]
+      if options.key?(:if)
         condition = options[:if]
         unless condition.is_a?(Proc) ? condition.call : condition
           check_info[:status] = :skipped
@@ -61,7 +61,7 @@ module Allgood
         end
       end
 
-      if options[:unless]
+      if options.key?(:unless)
         condition = options[:unless]
         if condition.is_a?(Proc) ? condition.call : condition
           check_info[:status] = :skipped
