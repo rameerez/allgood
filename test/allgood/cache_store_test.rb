@@ -49,6 +49,28 @@ class CacheStoreTest < Minitest::Test
     end
   end
 
+  def test_cleanup_old_keys_with_delete_matched
+    fake_cache = Class.new do
+      attr_reader :deleted_pattern
+      def write(*) = true
+      def read(*) = "true"
+      def delete_matched(pattern)
+        @deleted_pattern = pattern
+        1
+      end
+    end.new
+
+    travel_to Time.utc(2024, 12, 31, 23, 59, 0) do
+      @store.stub(:rails_cache_available?, true) do
+        Rails.stub(:cache, fake_cache) do
+          @store.cleanup_old_keys
+          expected_date = (Time.current - 2.days).strftime('%Y-%m-%d')
+          assert_equal "allgood:*:*:#{expected_date}*", fake_cache.deleted_pattern
+        end
+      end
+    end
+  end
+
   def test_rails_cache_available_checks_read_write
     store = ActiveSupport::Cache::MemoryStore.new
     Rails.stub(:cache, store) do

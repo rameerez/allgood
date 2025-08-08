@@ -25,7 +25,12 @@ class HealthcheckControllerTest < Minitest::Test
 
     get "/"
     assert last_response.ok?, "Expected 200 OK"
-    assert_includes text_content(last_response.body), "It's all good"
+    doc = Nokogiri::HTML.parse(last_response.body)
+    header_text = doc.at_css('header h1')&.text
+    assert_includes header_text, "It's all good"
+    # Verify success emojis visible for non-skipped
+    check_lines = doc.css('.check').map { |n| n.text }
+    assert check_lines.any? { |t| t.include?("✅") }
   end
 
   def test_json_error_when_any_check_fails
@@ -34,8 +39,17 @@ class HealthcheckControllerTest < Minitest::Test
     get "/"
     assert_equal 503, last_response.status
     json = JSON.parse(last_response.body)
+    # Detailed schema assertions
+    assert_equal %w[checks status], json.keys.sort
     assert_equal "error", json["status"]
-    refute json["checks"].first["success"]
+    assert_kind_of Array, json["checks"]
+    first = json["checks"].first
+    assert first.key?("name")
+    assert first.key?("success")
+    assert first.key?("message")
+    assert first.key?("duration")
+    assert_includes [true, false], first["success"]
+    assert_kind_of Numeric, first["duration"]
   end
 
   def test_timeout_is_handled
@@ -54,6 +68,9 @@ class HealthcheckControllerTest < Minitest::Test
 
     get "/"
     assert last_response.ok?
+    doc = Nokogiri::HTML.parse(last_response.body)
+    # Skipped checks have the .skipped class
+    assert doc.css('.check.skipped').any?
     assert_includes text_content(last_response.body), "Only runs in"
     assert_includes text_content(last_response.body), "condition not met"
   end
@@ -68,6 +85,22 @@ class HealthcheckControllerTest < Minitest::Test
     get "/"
     assert last_response.ok?
     assert_includes text_content(last_response.body), "Rate limited"
+  end
+
+  def test_rate_limit_resets_next_day
+    travel_to Time.utc(2024, 12, 31, 23, 59, 0) do
+      @config.check("Daily", run: "1 times per day") { make_sure true }
+      get "/" # first run ok
+      assert last_response.ok?
+      get "/" # rate limited within same day
+      assert last_response.ok?
+      assert_includes text_content(last_response.body), "Rate limited"
+
+      travel 2.minutes # into next day
+      get "/" # should run again
+      assert last_response.ok?
+      refute_includes text_content(last_response.body), "Rate limited"
+    end
   end
 
   def test_error_rescue_returns_500
@@ -87,5 +120,8 @@ class HealthcheckControllerTest < Minitest::Test
     json = JSON.parse(last_response.body)
     assert_equal "ok", json["status"]
     assert_equal "Pass", json["checks"].first["name"]
+    assert_includes [true, false], json["checks"].first["success"]
+    assert_kind_of String, json["checks"].first["message"]
+    assert_kind_of Numeric, json["checks"].first["duration"]
   end
 end
