@@ -71,6 +71,35 @@ class CacheStoreTest < Minitest::Test
     end
   end
 
+  def test_cleanup_old_keys_logs_warning_on_error
+    fake_cache = Class.new do
+      def write(*) = true
+      def read(*) = "true"
+      def delete_matched(*)
+        raise "delete failed"
+      end
+    end.new
+
+    messages = []
+    fake_logger = Logger.new($stdout)
+    def fake_logger.warn(msg)
+      (@_msgs ||= []) << msg
+    end
+    def fake_logger.messages
+      @_msgs || []
+    end
+
+    @store.stub(:rails_cache_available?, true) do
+      Rails.stub(:cache, fake_cache) do
+        Rails.stub(:logger, fake_logger) do
+          # Should not raise
+          @store.cleanup_old_keys
+          assert fake_logger.messages.any? { |m| m.include?("Failed to cleanup old cache keys") }
+        end
+      end
+    end
+  end
+
   def test_rails_cache_available_checks_read_write
     store = ActiveSupport::Cache::MemoryStore.new
     Rails.stub(:cache, store) do
