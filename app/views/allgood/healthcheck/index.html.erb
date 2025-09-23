@@ -32,9 +32,15 @@
       <% else %>
         <%= result[:success] ? "✅" : "❌" %>
       <% end %>
-      <b><%= result[:name] %></b>: <i><%= result[:message] %></i> 
+      <b><%= result[:name] %></b>: <i><%= result[:message] %></i>
       <% unless result[:skipped] %>
         <code>[<%= result[:duration] %>ms]</code>
+      <% end %>
+
+      <% if result[:context_url] %>
+        <i>(<a href="<%= result[:context_url] %>" target="_blank"><%= result[:context] || "see more" %></a>)</i>
+      <% elsif result[:context] %>
+        <i>(<%= result[:context] %>)</i>
       <% end %>
     </div>
   <% end %>

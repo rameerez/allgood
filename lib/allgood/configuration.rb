@@ -13,6 +13,8 @@ module Allgood
         name: name,
         block: block,
         timeout: options[:timeout] || @default_timeout,
+        context: options[:context],
+        context_url: options[:context_url],
         options: options,
         status: :pending
       }

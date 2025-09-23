@@ -16,7 +16,7 @@ module Allgood
       Rails.logger.error "Allgood Healthcheck Error: #{e.message}\n#{e.backtrace.join("\n")}"
 
       # Return a minimal response
-      @results = [{ name: "Healthcheck Error", success: false, message: "Internal error occurred", duration: 0 }]
+      @results = [ { name: "Healthcheck Error", success: false, message: "Internal error occurred", duration: 0 } ]
       @status = "error"
 
       respond_to do |format|
@@ -35,7 +35,9 @@ module Allgood
             success: true,
             skipped: true,
             message: check[:skip_reason],
-            duration: 0
+            duration: 0,
+            context: check[:context],
+            context_url: check[:context_url]
           }
         else
           run_single_check(check)
@@ -59,12 +61,19 @@ module Allgood
           success: last_result ? last_result[:success] : true,
           skipped: true,
           message: message,
-          duration: 0
+          duration: 0,
+          context: check[:context],
+          context_url: check[:context_url]
         }
       end
 
       start_time = Time.now
-      result = { success: false, message: "Check timed out after #{check[:timeout]} seconds" }
+      result = {
+        success: false,
+        message: "Check timed out after #{check[:timeout]} seconds",
+        context: check[:context],
+        context_url: check[:context_url]
+      }
       error_key = "allgood:error:#{check[:name].parameterize}"
 
       begin
@@ -106,7 +115,9 @@ module Allgood
         name: check[:name],
         success: result[:success],
         message: result[:message],
-        duration: ((Time.now - start_time) * 1000).round(1)
+        duration: ((Time.now - start_time) * 1000).round(1),
+        context: check[:context],
+        context_url: check[:context_url]
       }
     end
   end
