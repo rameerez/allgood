@@ -32,12 +32,11 @@ module Allgood
         if check[:status] == :skipped
           {
             name: check[:name],
+            description: check[:description],
             success: true,
             skipped: true,
             message: check[:skip_reason],
-            duration: 0,
-            context: check[:context],
-            context_url: check[:context_url]
+            duration: 0
           }
         else
           run_single_check(check)
@@ -58,21 +57,19 @@ module Allgood
 
         return {
           name: check[:name],
+          description: check[:description],
           success: last_result ? last_result[:success] : true,
           skipped: true,
           message: message,
-          duration: 0,
-          context: check[:context],
-          context_url: check[:context_url]
+          duration: 0
         }
       end
 
       start_time = Time.now
       result = {
+        description: check[:description],
         success: false,
-        message: "Check timed out after #{check[:timeout]} seconds",
-        context: check[:context],
-        context_url: check[:context_url]
+        message: "Check timed out after #{check[:timeout]} seconds"
       }
       error_key = "allgood:error:#{check[:name].parameterize}"
 
@@ -113,11 +110,10 @@ module Allgood
 
       {
         name: check[:name],
+        description: check[:description],
         success: result[:success],
         message: result[:message],
-        duration: ((Time.now - start_time) * 1000).round(1),
-        context: check[:context],
-        context_url: check[:context_url]
+        duration: ((Time.now - start_time) * 1000).round(1)
       }
     end
   end
