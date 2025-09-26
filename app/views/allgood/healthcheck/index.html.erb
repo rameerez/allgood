@@ -39,7 +39,7 @@
       <% else %>
         <%= result[:success] ? "✅" : "❌" %>
       <% end %>
-      <b><%= result[:name] %></b>: <i><%= result[:message] %></i>
+      <b><%= result[:name] %></b>: <i><%= result[:message] %></i> 
       <% unless result[:skipped] %>
         <code>[<%= result[:duration] %>ms]</code>
       <% end %>
