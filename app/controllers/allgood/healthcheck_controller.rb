@@ -16,7 +16,7 @@ module Allgood
       Rails.logger.error "Allgood Healthcheck Error: #{e.message}\n#{e.backtrace.join("\n")}"
 
       # Return a minimal response
-      @results = [ { name: "Healthcheck Error", success: false, message: "Internal error occurred", duration: 0 } ]
+      @results = [{ name: "Healthcheck Error", success: false, message: "Internal error occurred", duration: 0 }]
       @status = "error"
 
       respond_to do |format|
