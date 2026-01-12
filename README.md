@@ -3,7 +3,7 @@
 [![Gem Version](https://badge.fury.io/rb/allgood.svg)](https://badge.fury.io/rb/allgood)
 
 > [!TIP]
-> **Ship your next Rails app 10x faster!** I've built **[RailsFast](https://railsfast.com)**, a production-ready Rails boilerplate that comes with everything you need to launch a software business in days, not weeks.
+> **🚀 Ship your next Rails app 10x faster!** I've built **[RailsFast](https://railsfast.com)**, a production-ready Rails boilerplate template that comes with everything you need to launch a software business in days, not weeks.
 
 `allgood` is a gem to add quick, simple, and beautiful health checks to your Rails application via a `/healthcheck` page.
 
