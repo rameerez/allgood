@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+# SimpleCov must be loaded BEFORE any application code
+# Configuration is auto-loaded from .simplecov file
+require "simplecov"
+
 require "minitest/autorun"
 require "rack/test"
 require "rails"
