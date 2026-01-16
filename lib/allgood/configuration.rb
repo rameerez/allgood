@@ -11,6 +11,7 @@ module Allgood
     def check(name, **options, &block)
       check_info = {
         name: name,
+        description: options[:description],
         block: block,
         timeout: options[:timeout] || @default_timeout,
         options: options,
