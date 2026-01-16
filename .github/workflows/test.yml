@@ -1,0 +1,53 @@
+name: Tests
+
+on:
+  pull_request:
+    paths-ignore:
+      - "*.md"
+      - "LICENSE.txt"
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "*.md"
+      - "LICENSE.txt"
+
+jobs:
+  # Main test suite - tests Ruby versions and Rails compatibility
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby_version: ["3.3", "3.4", "4.0"]
+        gemfile:
+          - Gemfile
+          - gemfiles/rails_7.2.gemfile
+          - gemfiles/rails_8.0.gemfile
+          - gemfiles/rails_8.1.gemfile
+
+    env:
+      RAILS_ENV: test
+      BUNDLE_GEMFILE: ${{ github.workspace }}/${{ matrix.gemfile }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby ${{ matrix.ruby_version }}
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby_version }}
+          bundler-cache: true
+
+      - name: Run tests
+        run: bundle exec rake test
+
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-sqlite-ruby-${{ matrix.ruby_version }}-${{ matrix.gemfile }}
+          path: test/reports/
+          retention-days: 7
