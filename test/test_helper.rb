@@ -5,6 +5,7 @@
 require "simplecov"
 
 require "minitest/autorun"
+require "minitest/mock"
 require "rack/test"
 require "rails"
 require "action_controller/railtie"
