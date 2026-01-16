@@ -6,6 +6,25 @@
 /pkg/
 /spec/reports/
 /tmp/
+
+test/dummy/db/*.sqlite3*
+test/dummy/log/*.log
+test/dummy/tmp/
+test/dummy/public/packs/
+test/dummy/public/packs-test/
+test/dummy/node_modules/
+test/dummy/Gemfile.lock
+test/dummy/config/master.key
+test/dummy/storage/*.sqlite3*
+test/dummy/log/*
+test/coverage/*
+**/.kamal/
+deploy.yml
+.DS_Store
+
+/Gemfile.lock
+/gemfiles/*.gemfile.lock
+
 /dist/
 *.gem
 
@@ -15,5 +34,9 @@
 /vendor/bundle/
 /vendor/cache/
 /vendor/ruby/
+
+.cursor/
+.claude/
+.aux/
 
 TODO
