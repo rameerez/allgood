@@ -10,4 +10,5 @@ gem "rake", "~> 13.0"
 group :development, :test do
   gem "minitest"
   gem "rack-test"
+  gem "simplecov", require: false
 end
