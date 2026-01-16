@@ -13,7 +13,7 @@ on:
       - "LICENSE.txt"
 
 jobs:
-  # Main test suite - tests Ruby versions and Rails/Pay compatibility with SQLite
+  # Main test suite - tests Ruby versions and Rails compatibility
   test:
     runs-on: ubuntu-latest
 
