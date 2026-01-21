@@ -32,6 +32,7 @@ module Allgood
         if check[:status] == :skipped
           {
             name: check[:name],
+            description: check[:description],
             success: true,
             skipped: true,
             message: check[:skip_reason],
@@ -56,6 +57,7 @@ module Allgood
 
         return {
           name: check[:name],
+          description: check[:description],
           success: last_result ? last_result[:success] : true,
           skipped: true,
           message: message,
@@ -64,7 +66,11 @@ module Allgood
       end
 
       start_time = Time.now
-      result = { success: false, message: "Check timed out after #{check[:timeout]} seconds" }
+      result = {
+        description: check[:description],
+        success: false,
+        message: "Check timed out after #{check[:timeout]} seconds"
+      }
       error_key = "allgood:error:#{check[:name].parameterize}"
 
       begin
@@ -104,6 +110,7 @@ module Allgood
 
       {
         name: check[:name],
+        description: check[:description],
         success: result[:success],
         message: result[:message],
         duration: ((Time.now - start_time) * 1000).round(1)
