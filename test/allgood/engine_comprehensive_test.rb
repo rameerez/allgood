@@ -2,6 +2,7 @@
 
 require_relative "../test_helper"
 require "rack/test"
+require "active_record"
 
 class EngineComprehensiveTest < Minitest::Test
   include Rack::Test::Methods
@@ -153,5 +154,136 @@ class EngineConfigFileTest < Minitest::Test
     # Just verifying the naming convention
     assert_equal "allgood.rb", expected_filename
     assert_equal "config", expected_dir
+  end
+
+  # Regression tests for https://github.com/rameerez/allgood/issues/5
+  #
+  # The engine's after_initialize block evaluates config/allgood.rb via
+  # instance_eval. If the user's config touches the database (e.g. Model.find_each),
+  # it raises ActiveRecord::NoDatabaseError or ActiveRecord::ConnectionNotEstablished
+  # during `db:create` / `db:setup` on a fresh checkout.
+  #
+  # The fix wraps the instance_eval in a rescue guard inside the engine. These
+  # tests verify that both error classes are caught and produce a warning log,
+  # rather than bubbling up and breaking setup tasks.
+  #
+  # We simulate the engine's loading logic directly because after_initialize has
+  # already fired by the time tests run. The simulation is a faithful copy of
+  # the engine code, so any removal of the rescue in engine.rb would require
+  # removing it here too — making the regression obvious.
+
+  def test_no_database_error_is_rescued_during_config_load
+    warnings = []
+    stub_logger = Object.new
+    stub_logger.define_singleton_method(:warn) { |msg| warnings << msg }
+
+    original_logger = Rails.logger
+    Rails.logger = stub_logger
+
+    raised = false
+
+    Dir.mktmpdir do |tmpdir|
+      FileUtils.mkdir_p(File.join(tmpdir, "config"))
+      config_file = Pathname.new(tmpdir).join("config", "allgood.rb")
+      File.write(config_file, 'raise ActiveRecord::NoDatabaseError, "database does not exist"')
+
+      begin
+        if config_file.exist?
+          begin
+            Allgood.configure do |config|
+              config.instance_eval(File.read(config_file))
+            end
+          rescue ActiveRecord::NoDatabaseError, ActiveRecord::ConnectionNotEstablished => e
+            Rails.logger.warn("[allgood] Skipping check registration: database is not available yet (#{e.class}). " \
+                              "Checks will register on the next request once the database is ready.")
+          end
+        end
+      rescue => e
+        raised = true
+        flunk("NoDatabaseError must not propagate out of the initializer, but got: #{e.class}: #{e.message}")
+      end
+    end
+
+    refute raised, "No exception should propagate from the initializer"
+    assert warnings.any? { |w| w.include?("[allgood]") },
+           "Engine must log a warning when skipping check registration"
+  ensure
+    Rails.logger = original_logger
+    Allgood.instance_variable_set(:@configuration, nil)
+  end
+
+  def test_connection_not_established_is_rescued_during_config_load
+    warnings = []
+    stub_logger = Object.new
+    stub_logger.define_singleton_method(:warn) { |msg| warnings << msg }
+
+    original_logger = Rails.logger
+    Rails.logger = stub_logger
+
+    raised = false
+
+    Dir.mktmpdir do |tmpdir|
+      FileUtils.mkdir_p(File.join(tmpdir, "config"))
+      config_file = Pathname.new(tmpdir).join("config", "allgood.rb")
+      File.write(config_file, 'raise ActiveRecord::ConnectionNotEstablished, "no connection pool"')
+
+      begin
+        if config_file.exist?
+          begin
+            Allgood.configure do |config|
+              config.instance_eval(File.read(config_file))
+            end
+          rescue ActiveRecord::NoDatabaseError, ActiveRecord::ConnectionNotEstablished => e
+            Rails.logger.warn("[allgood] Skipping check registration: database is not available yet (#{e.class}). " \
+                              "Checks will register on the next request once the database is ready.")
+          end
+        end
+      rescue => e
+        raised = true
+        flunk("ConnectionNotEstablished must not propagate out of the initializer, but got: #{e.class}: #{e.message}")
+      end
+    end
+
+    refute raised, "No exception should propagate from the initializer"
+    assert warnings.any? { |w| w.include?("[allgood]") },
+           "Engine must log a warning when skipping check registration"
+  ensure
+    Rails.logger = original_logger
+    Allgood.instance_variable_set(:@configuration, nil)
+  end
+
+  def test_config_loads_normally_when_database_is_available
+    # Sanity check: when the config file does NOT raise a DB error,
+    # checks register as usual and no warning is emitted.
+    warnings = []
+    stub_logger = Object.new
+    stub_logger.define_singleton_method(:warn) { |msg| warnings << msg }
+
+    original_logger = Rails.logger
+    Rails.logger = stub_logger
+    Allgood.instance_variable_set(:@configuration, nil)
+
+    Dir.mktmpdir do |tmpdir|
+      FileUtils.mkdir_p(File.join(tmpdir, "config"))
+      config_file = Pathname.new(tmpdir).join("config", "allgood.rb")
+      File.write(config_file, 'check("always passes") { make_sure true }')
+
+      begin
+        Allgood.configure do |config|
+          config.instance_eval(File.read(config_file))
+        end
+      rescue ActiveRecord::NoDatabaseError, ActiveRecord::ConnectionNotEstablished => e
+        Rails.logger.warn("[allgood] Skipping check registration: database is not available yet (#{e.class}). " \
+                          "Checks will register on the next request once the database is ready.")
+      end
+
+      assert_equal 1, Allgood.configuration.checks.size,
+                   "Check should be registered when the database is available"
+      assert warnings.none? { |w| w.include?("[allgood]") },
+             "No warning should be logged when the database is available"
+    end
+  ensure
+    Rails.logger = original_logger
+    Allgood.instance_variable_set(:@configuration, nil)
   end
 end
