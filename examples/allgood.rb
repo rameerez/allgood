@@ -38,7 +38,12 @@ check "The database connection pool is healthy" do
 end
 
 check "Database migrations are up to date" do
-  make_sure ActiveRecord::Migration.check_all_pending! == nil
+  # Primary database only, read-only, ~ms. Deliberately NOT
+  # ActiveRecord::Migration.check_all_pending! — that walks EVERY configured
+  # connection pool (queue/cache/cable in a Solid-* app) and blocks on pool
+  # checkout under load, which can push a healthy page into check-timeout
+  # territory. Seen in production: 122ms idle, >10s under traffic.
+  make_sure !ActiveRecord::Base.connection.pool.migration_context.needs_migration?
 end
 
 # --- IMAGE PROCESSING ---
