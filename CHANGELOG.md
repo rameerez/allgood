@@ -1,3 +1,9 @@
+## [0.3.1] - 2026-10-21
+
+- Fixed checks declared with a literal falsy condition, like `check "...", if: false`. The `if:` option was ignored when its value was `false` or `nil`, so those checks ran instead of being skipped. They are now skipped, as the option says.
+- Changed the example "Database migrations are up to date" check in the README and `examples/allgood.rb` to ask only the primary database whether it needs migrating. The previous example called `ActiveRecord::Migration.check_all_pending!`, which walks every configured connection pool and could push the healthcheck page past its timeout under load in apps with several databases.
+- Added a test suite that runs on CI against Rails 7.2, 8.0 and 8.1.
+
 ## [0.3.0] - 2024-10-27
 
 - Added rate limiting for expensive checks with the `run: "N times per day/hour"` option

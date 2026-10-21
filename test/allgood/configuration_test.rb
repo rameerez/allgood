@@ -211,6 +211,18 @@ class ConfigurationTest < Minitest::Test
     assert_match(/condition not met/, check[:skip_reason])
   end
 
+  def test_check_if_literal_nil_skips
+    @config.check("Conditional", if: nil) { make_sure true }
+    check = @config.checks.last
+    assert_equal :skipped, check[:status]
+    assert_match(/condition not met/, check[:skip_reason])
+  end
+
+  def test_check_unless_literal_nil_runs
+    @config.check("Conditional", unless: nil) { make_sure true }
+    assert_equal :active, @config.checks.last[:status]
+  end
+
   def test_check_if_proc_returning_true_runs
     @config.check("Conditional", if: -> { 1 + 1 == 2 }) { make_sure true }
     assert_equal :active, @config.checks.last[:status]
