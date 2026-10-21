@@ -20,7 +20,8 @@ module Allgood
 
     def write(key, value)
       if rails_cache_available?
-        expiry = key.include?('day') ? 1.day : 1.hour
+        # Determine expiration based on the cache key pattern
+        expiry = determine_expiry(key)
         Rails.cache.write(key, value, expires_in: expiry)
       else
         @memory_store[key] = value
@@ -39,6 +40,20 @@ module Allgood
     end
 
     private
+
+    def determine_expiry(key)
+      # Check if the key is for a daily check
+      if key.match?(/:day\z/) || # Matches keys ending with :day
+         (key.include?('current_period') && key.end_with?('day')) || # Current period keys for daily checks
+         (key.include?('runs_count') && key.include?(':day:')) || # Run counts for daily checks
+         (key.include?('last_run') && key.end_with?('day')) || # Last run times for daily checks
+         (key.include?('error') && key.end_with?('day')) || # Error states for daily checks
+         (key.include?('last_result') && key.end_with?('day')) # Last results for daily checks
+        1.day
+      else
+        1.hour
+      end
+    end
 
     def rails_cache_available?
       Rails.cache && Rails.cache.respond_to?(:read) && Rails.cache.respond_to?(:write) &&

@@ -82,29 +82,34 @@ module Allgood
     def should_run_check?(check)
       return true unless check[:rate]
 
-      cache_key = "allgood:last_run:#{check[:name].parameterize}"
-      runs_key = "allgood:runs_count:#{check[:name].parameterize}:#{current_period(check[:rate])}"
-      error_key = "allgood:error:#{check[:name].parameterize}"
-      last_result_key = "allgood:last_result:#{check[:name].parameterize}"
+      period = check[:rate][:period]
+      name = check[:name].parameterize
+
+      # Update cache keys to include period information
+      cache_key = "allgood:last_run:#{name}:#{period}"
+      runs_key = "allgood:runs_count:#{name}:#{current_period(check[:rate])}:#{period}"
+      error_key = "allgood:error:#{name}:#{period}"
+      last_result_key = "allgood:last_result:#{name}:#{period}"
+      current_period_key = "allgood:current_period:#{name}:#{period}"
 
       last_run = Allgood::CacheStore.instance.read(cache_key)
       period_runs = Allgood::CacheStore.instance.read(runs_key).to_i
       last_result = Allgood::CacheStore.instance.read(last_result_key)
+      stored_period = Allgood::CacheStore.instance.read(current_period_key)
 
-      current_period_key = current_period(check[:rate])
-      stored_period = Allgood::CacheStore.instance.read("allgood:current_period:#{check[:name].parameterize}")
+      current_time_period = current_period(check[:rate])
 
       # If we're in a new period, reset the counter
-      if stored_period != current_period_key
+      if stored_period != current_time_period
         period_runs = 0
-        Allgood::CacheStore.instance.write("allgood:current_period:#{check[:name].parameterize}", current_period_key)
+        Allgood::CacheStore.instance.write(current_period_key, current_time_period)
         Allgood::CacheStore.instance.write(runs_key, 0)
       end
 
       # If there's an error, wait until next period
       if previous_error = Allgood::CacheStore.instance.read(error_key)
         next_period = next_period_start(check[:rate])
-        rate_info = "Rate limited (#{period_runs}/#{check[:rate][:max_runs]} runs this #{check[:rate][:period]})"
+        rate_info = "Rate limited (#{period_runs}/#{check[:rate][:max_runs]} runs this #{period})"
         check[:skip_reason] = "#{rate_info}. Waiting until #{next_period.strftime('%H:%M:%S %Z')} to retry failed check"
         return false
       end
@@ -116,7 +121,7 @@ module Allgood
         true
       else
         next_period = next_period_start(check[:rate])
-        rate_info = "Rate limited (#{period_runs}/#{check[:rate][:max_runs]} runs this #{check[:rate][:period]})"
+        rate_info = "Rate limited (#{period_runs}/#{check[:rate][:max_runs]} runs this #{period})"
         next_run = "Next check at #{next_period.strftime('%H:%M:%S %Z')}"
         check[:skip_reason] = "#{rate_info}. #{next_run}"
         false
